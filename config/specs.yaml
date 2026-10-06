@@ -1,0 +1,54 @@
+# MFG-C2-006 — the approved tolerance specification.
+#
+# Read at runtime by the inspection pipeline; a caller may merge per-request
+# limits over it through the `tolerance_profile` field of the inspection
+# profile, and any dimension it overrides is disclosed in the report.
+#
+# The bands below are illustrative dimensions for a generic machined part.
+# Replace them with the control plan for the parts being inspected.
+#
+# SECURITY NOTE: do NOT commit confidential tolerance values here. Load them
+# from a secret store at runtime — a specification is proprietary process
+# data, which is also why the report never reproduces a limit.
+
+tolerance_rules:
+  # Dimensional checks: field name + tolerance band [min, max].
+  # Values are in the unit specified per field.
+  dimensions:
+    - field: length
+      min: 9.8
+      max: 10.2
+      unit: mm
+      description: "Primary length dimension (ISO 2768-m class)"
+    - field: width
+      min: 4.9
+      max: 5.1
+      unit: mm
+      description: "Primary width dimension (ISO 2768-m class)"
+    - field: surface_roughness
+      min: 0.0
+      max: 1.6
+      unit: Ra
+      description: "Surface roughness (Ra, ISO 1302)"
+
+  # Dimensions that MUST appear in every submission. This is the control
+  # plan and is NOT caller-overridable — a caller cannot make a missing
+  # measurement disappear. An absent dimension raises
+  # MISSING_REQUIRED_MEASUREMENT.
+  required_measurements:
+    - length
+    - width
+    - surface_roughness
+
+  # Record-identification fields that must be present in the submission.
+  # An absent field raises METADATA_INCOMPLETE.
+  iatf_required_fields:
+    - product_id
+    - lot_number
+
+  # Process-capability threshold. A dimension whose capability index falls
+  # below it raises CAPABILITY_BELOW_THRESHOLD. The index needs at least two
+  # measurement rows with non-zero spread; a smaller sample is reported as
+  # INSUFFICIENT_SAMPLES rather than passing by default. A caller may raise or
+  # lower this per request; doing so is disclosed in the report.
+  cpk_threshold: 1.33
